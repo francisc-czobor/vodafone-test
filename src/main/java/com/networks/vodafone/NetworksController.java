@@ -5,6 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.mediatype.problem.Problem;
 import org.springframework.http.HttpHeaders;
@@ -64,8 +68,9 @@ class NetworksController {
         for (Network network : networks) {
             try {
                 networkRepository.save(network);
-            } catch (IllegalArgumentException e) {
-                log.error("network is null", e);
+            } catch (IllegalArgumentException | DataIntegrityViolationException e) {
+                log.warn("network is null or already exists");
+                numberOfNetworks--;
                 continue;
             }
             log.info("Network: " + network);
@@ -107,15 +112,32 @@ class NetworksController {
                             .withTitle("Bad Request")
                             .withDetail("The given IP is improperly formatted."));
         }
-
-        List<Network> networks = networkRepository.findAll();
+        
         List<Network> response = new ArrayList<Network>();
 
-        // check if the ip address fits into the networks
-        for (Network network : networks) {
+        // paging the networks from the db to not stress it too much
+        Pageable page = PageRequest.of(0, 2);
+        Page<Network> networks = networkRepository.findAll(page);
+
+        // check if the ip address fits into the first page of networks
+        for (Network network : networks.toList()) {
             if (Utils.subnetContains(network.getIp(), ip)) {
                 response.add(network);
             }
+        }
+        // the rest of the pages
+        if (networks.getTotalPages() > 1) {
+            do {
+                page = networks.nextPageable();
+                networks = networkRepository.findAll(page);
+    
+                // check if the ip address fits into the current page of networks
+                for (Network network : networks.toList()) {
+                    if (Utils.subnetContains(network.getIp(), ip)) {
+                        response.add(network);
+                    }
+                }
+            } while (networks.hasNext());
         }
 
         // if the ip address didn't fit into any network
