@@ -74,13 +74,23 @@ class NetworksController {
      * @return      a list of networks in which the ip address fits
      */
     @GetMapping("/networks")
-    ResponseEntity<?> getNetworksByIP(@RequestParam String ip) {
+    ResponseEntity<?> getNetworksByIP(@RequestParam(required = false) String ip) {
+
+        // if the ip is missing from the querystring
+        if (ip == null || ip == "") {
+            log.warn("The IP missing.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaTypes.HTTP_PROBLEM_DETAILS_JSON_VALUE)
+                    .body(Problem.create()
+                            .withTitle("Bad Request")
+                            .withDetail("The IP is missing."));
+        }
 
         // if the ip address is invalid
         try {
             new IPAddressString(ip).toAddress();
         } catch (AddressStringException e) {
-            log.warn("The IP" + ip + " is improperly formatted.");
+            log.warn("The IP " + ip + " is improperly formatted.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .header(HttpHeaders.CONTENT_TYPE, MediaTypes.HTTP_PROBLEM_DETAILS_JSON_VALUE)
                     .body(Problem.create()
