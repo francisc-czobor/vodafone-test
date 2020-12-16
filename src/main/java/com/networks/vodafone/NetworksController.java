@@ -44,7 +44,17 @@ class NetworksController {
      * @return      a JSON formatted HTTP response containing the number of saved networks
      */
     @PostMapping("/networks")
-    ResponseEntity<?> insertNetwork(@RequestBody Map<String, Object> body) {
+    ResponseEntity<?> insertNetwork(@RequestBody(required = false) Map<String, Object> body) {
+
+        // if the body is empty
+        if (body == null || body.isEmpty()) {
+            log.warn("The body is empty.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaTypes.HTTP_PROBLEM_DETAILS_JSON_VALUE)
+                    .body(Problem.create()
+                            .withTitle("Bad Request")
+                            .withDetail("The body is empty."));
+        }
 
         // call the utils method for parsing the request body
         List<Network> networks = Utils.parseRequestBody(body);

@@ -117,9 +117,24 @@ public class Utils {
      * @return          true if the ip address fits into the network, false otherwise
      */
     public static boolean subnetContains(String network, String address) {
-        IPAddressString networkString = new IPAddressString(network);
-        IPAddress networkIPAddr = networkString.getAddress().toPrefixBlock();
-        IPAddress addressIPAddr = new IPAddressString(address).getAddress();
+
+        // if any of the parameters are null
+        if (network == null || address == null) {
+            return false;
+        }
+
+        IPAddressString networkString;
+        IPAddress networkIPAddr;
+        IPAddress addressIPAddr;
+        
+        // if any of the parameters are invalid
+        try {
+            networkString = new IPAddressString(network);
+            networkIPAddr = networkString.toAddress().toPrefixBlock();
+            addressIPAddr = new IPAddressString(address).toAddress();
+        } catch (AddressStringException e) {
+            return false;
+        }
 
         boolean result = networkIPAddr.contains(addressIPAddr);
 
