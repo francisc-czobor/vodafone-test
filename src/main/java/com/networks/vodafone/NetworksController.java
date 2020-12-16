@@ -116,7 +116,7 @@ class NetworksController {
         List<Network> response = new ArrayList<Network>();
 
         // paging the networks from the db to not stress it too much
-        Pageable page = PageRequest.of(0, 2);
+        Pageable page = PageRequest.of(0, 50);
         Page<Network> networks = networkRepository.findAll(page);
 
         // check if the ip address fits into the first page of networks
