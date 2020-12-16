@@ -22,6 +22,9 @@ import inet.ipaddr.IPAddressString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Controller class for the functionality of the server.
+ */
 @RestController
 class NetworksController {
 
@@ -34,12 +37,20 @@ class NetworksController {
         this.networkRepository = networkRepository;
     }
 
+    /**
+     * API endpoint for receiving network configurations to be saved.
+     * 
+     * @param body  the request body
+     * @return      a JSON formatted HTTP response containing the number of saved networks
+     */
     @PostMapping("/networks")
     ResponseEntity<?> insertNetwork(@RequestBody Map<String, Object> body) {
 
+        // call the utils method for parsing the request body
         List<Network> networks = Utils.parseRequestBody(body);
         int numberOfNetworks = networks.size();
 
+        // save all the networks into the database
         for (Network network : networks) {
             try {
                 networkRepository.save(network);
@@ -50,14 +61,22 @@ class NetworksController {
             log.info("Network: " + network);
         }
 
+        // build the response
         Map<String, Integer> response = new HashMap<String, Integer>();
         response.put("number of saved networks", numberOfNetworks);
         return ResponseEntity.ok().body(response);
     }
 
+    /**
+     * API endpoint for checking in which networks a given ip address fits into.
+     * 
+     * @param ip    the given ip address to be checked
+     * @return      a list of networks in which the ip address fits
+     */
     @GetMapping("/networks")
-    ResponseEntity<?> insertNetwork(@RequestParam String ip) {
+    ResponseEntity<?> getNetworksByIP(@RequestParam String ip) {
 
+        // if the ip address is invalid
         try {
             new IPAddressString(ip).toAddress();
         } catch (AddressStringException e) {
@@ -72,12 +91,14 @@ class NetworksController {
         List<Network> networks = networkRepository.findAll();
         List<Network> response = new ArrayList<Network>();
 
+        // check if the ip address fits into the networks
         for (Network network : networks) {
             if (Utils.subnetContains(network.getIp(), ip)) {
                 response.add(network);
             }
         }
 
+        // if the ip address didn't fit into any network
         if (response.size() == 0) {
             log.info("No networks match the IP " + ip + ".");
             return ResponseEntity.status(HttpStatus.NO_CONTENT)

@@ -11,14 +11,22 @@ import javax.persistence.ManyToOne;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 
+/**
+ * POJO for defining an IP address.
+ * 
+ * It contains the ip, an availability flag and a last used timestamp.
+ */
 @Entity
 class IPAddr {
 
+    // primary key
     private @Id @GeneratedValue Long id;
+
     private String ip;
     private Boolean available;
     private String lastUsed;
 
+    // the many to one relation to the Network table
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "network_id")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

@@ -9,15 +9,23 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.CascadeType;
 
+/**
+ * POJO for defining a network.
+ * 
+ * It contains the network address (ip), the location, metropolitan area network and security level.
+ */
 @Entity
 class Network {
 
+    // primary key
     private @Id @GeneratedValue Long id;
+
     private String ip;
     private String location;
     private String man;
     private int securityLevel;
 
+    // the one to many relation to the IPAddr table
     @OneToMany(mappedBy = "network", cascade = CascadeType.ALL)
     private Set<IPAddr> addresses;
 
