@@ -2,9 +2,14 @@ package com.networks.vodafone;
 
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
 
 @Entity
 class IPAddr {
@@ -12,17 +17,21 @@ class IPAddr {
     private @Id @GeneratedValue Long id;
     private String ip;
     private Boolean available;
-    private String last_used;
+    private String lastUsed;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "network_id")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Network network;
 
     IPAddr() {
     }
 
-    IPAddr(String ip, Boolean available, String last_used, Network network) {
+    IPAddr(String ip, Boolean available, String lastUsed, Network network) {
 
         this.ip = ip;
         this.available = available;
-        this.last_used = last_used;
+        this.lastUsed = lastUsed;
         this.network = network;
     }
 
@@ -32,6 +41,22 @@ class IPAddr {
 
     public void setIp(String ip) {
         this.ip = ip;
+    }
+
+    public boolean isAvailable() {
+        return this.available;
+    }
+
+    public void setAvailable(Boolean available) {
+        this.available = available;
+    }
+
+    public String getLastUsed() {
+        return this.lastUsed;
+    }
+
+    public void setLastUsed(String lastUsed) {
+        this.lastUsed = lastUsed;
     }
 
     public Long getId() {
@@ -61,18 +86,19 @@ class IPAddr {
         return Objects.equals(this.id, ipAddr.id) && Objects.equals(this.ip, ipAddr.ip)
                 && Objects.equals(this.network, ipAddr.network)
                 && Objects.equals(this.available, ipAddr.available)
-                && Objects.equals(this.last_used, ipAddr.last_used);
+                && Objects.equals(this.lastUsed, ipAddr.lastUsed);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.id, this.ip, this.network, this.available, this.last_used);
+        return Objects.hash(this.id, this.ip, this.network, this.available, this.lastUsed);
     }
 
     @Override
     public String toString() {
-        return "Network{" + "id=" + this.id + ", ip='" + this.ip + '\'' + ", network='" + this.network + '\''
-                + ", last_used='" + this.last_used + '\''
-                + ", available=" + this.available + '}';
+        return "Network{" + "id=" + this.id + ", ip='" + this.ip + '\''
+                + ", last_used='" + this.lastUsed + '\''
+                + ", available=" + this.available
+                + ", network='" + this.network + '\'' + '}';
     }
 }
